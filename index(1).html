@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dhanushkumar S — Cybersecurity Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#050806;
+    --bg-panel:#0b120e;
+    --bg-panel-2:#0e1712;
+    --green-primary:#39ff88;
+    --green-glow:#7dffb0;
+    --green-dim:#1e5c39;
+    --green-faint:#123322;
+    --text-main:#c9f2d9;
+    --text-muted:#5f8c72;
+    --amber:#ffb000;
+    --red-alert:#ff4d4d;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg-void);
+    color:var(--text-main);
+    font-family:var(--mono);
+    line-height:1.6;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* ---------- Matrix rain background ---------- */
+  #matrix-canvas{
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    z-index:0;
+    opacity:0.10;
+    pointer-events:none;
+  }
+
+  .scanlines{
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,255,140,0.015) 3px,
+      rgba(0,0,0,0) 4px
+    );
+    pointer-events:none;
+    z-index:1;
+  }
+
+  /* ---------- Layout wrapper ---------- */
+  .content{
+    position:relative;
+    z-index:2;
+    max-width:840px;
+    margin:0 auto;
+    padding:0 20px 100px;
+  }
+
+  /* ---------- Top nav ---------- */
+  nav{
+    position:sticky;
+    top:0;
+    z-index:10;
+    background:rgba(5,8,6,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--green-faint);
+    padding:14px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  .nav-prompt{
+    color:var(--green-primary);
+    font-size:13px;
+    letter-spacing:0.5px;
+  }
+  .nav-prompt .path{color:var(--text-muted);}
+
+  .nav-links{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+  .nav-links a{
+    color:var(--text-muted);
+    text-decoration:none;
+    font-size:13px;
+    transition:color .2s;
+    position:relative;
+  }
+  .nav-links a::before{content:"cd ~/";color:var(--green-dim);}
+  .nav-links a:hover{color:var(--green-primary);}
+
+  /* ---------- Terminal window card ---------- */
+  .term-window{
+    background:var(--bg-panel);
+    border:1px solid var(--green-faint);
+    border-radius:6px;
+    margin:40px 0;
+    overflow:hidden;
+    box-shadow:0 0 0 1px rgba(57,255,136,0.03), 0 20px 40px -20px rgba(0,0,0,0.6);
+  }
+  .term-titlebar{
+    background:var(--bg-panel-2);
+    padding:9px 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border-bottom:1px solid var(--green-faint);
+  }
+  .dot{width:10px;height:10px;border-radius:50%;}
+  .dot.d1{background:#2d5240;}
+  .dot.d2{background:var(--amber);opacity:.7;}
+  .dot.d3{background:var(--green-primary);opacity:.8;}
+  .term-path{
+    margin-left:8px;
+    font-size:12px;
+    color:var(--text-muted);
+  }
+  .term-body{padding:26px 24px;}
+
+  @media (max-width:600px){
+    .term-body{padding:20px 16px;}
+  }
+
+  .prompt-line{
+    color:var(--green-primary);
+    font-size:13px;
+    margin-bottom:16px;
+    opacity:0.85;
+  }
+  .prompt-line .sym{color:var(--text-muted);}
+
+  h2.section-title{
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    color:var(--green-primary);
+    margin-bottom:4px;
+  }
+  .section-sub{
+    color:var(--text-muted);
+    font-size:12px;
+    margin-bottom:20px;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:70px 0 20px;
+    text-align:left;
+  }
+  .boot-lines{
+    font-size:12px;
+    color:var(--green-dim);
+    margin-bottom:26px;
+    min-height:90px;
+  }
+  .boot-lines div{margin-bottom:3px; opacity:0.85;}
+  .boot-lines .ok{color:var(--green-primary);}
+
+  .hero-name{
+    font-size:clamp(28px, 6vw, 48px);
+    font-weight:700;
+    color:var(--text-main);
+    letter-spacing:-1px;
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:4px;
+  }
+  .hero-name .highlight{color:var(--green-primary);}
+  .cursor{
+    display:inline-block;
+    width:12px;
+    height:1em;
+    background:var(--green-primary);
+    margin-left:6px;
+    animation:blink 1s steps(1) infinite;
+    vertical-align:text-bottom;
+  }
+  @keyframes blink{50%{opacity:0;}}
+
+  .hero-tagline{
+    margin-top:10px;
+    font-size:clamp(14px, 2.5vw, 18px);
+    color:var(--green-glow);
+  }
+  .hero-tagline::before{content:"> "; color:var(--text-muted);}
+
+  .hero-links{
+    margin-top:26px;
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .hero-links a{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--text-main);
+    text-decoration:none;
+    border:1px solid var(--green-dim);
+    padding:9px 16px;
+    border-radius:4px;
+    font-size:13px;
+    transition:all .2s;
+  }
+  .hero-links a:hover{
+    border-color:var(--green-primary);
+    color:var(--green-primary);
+    background:rgba(57,255,136,0.06);
+  }
+  .hero-links svg{width:15px;height:15px;fill:currentColor;}
+
+  /* scan bar under hero */
+  .scan-wrap{
+    margin-top:34px;
+    font-size:11px;
+    color:var(--text-muted);
+  }
+  .scan-bar-track{
+    width:100%;
+    height:4px;
+    background:var(--green-faint);
+    border-radius:2px;
+    margin-top:8px;
+    overflow:hidden;
+  }
+  .scan-bar-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, var(--green-dim), var(--green-primary));
+    animation:fillscan 2.4s ease-out forwards;
+    animation-delay:0.4s;
+  }
+  @keyframes fillscan{ to{width:100%;} }
+
+  /* ---------- About ---------- */
+  .about-text{
+    color:var(--text-main);
+    font-size:14.5px;
+    line-height:1.85;
+  }
+  .about-text .key{color:var(--green-primary);}
+
+  /* ---------- Skills ---------- */
+  .skill-row{
+    display:grid;
+    grid-template-columns:120px 1fr 46px;
+    align-items:center;
+    gap:14px;
+    margin-bottom:16px;
+    font-size:13px;
+  }
+  .skill-name{color:var(--text-main);}
+  .skill-track{
+    height:6px;
+    background:var(--green-faint);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .skill-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--green-dim), var(--green-primary));
+    width:0%;
+    transition:width 1.4s cubic-bezier(.2,.8,.2,1);
+    border-radius:3px;
+  }
+  .skill-pct{color:var(--green-glow); text-align:right; font-size:12px;}
+
+  /* ---------- Projects ---------- */
+  .project-card{
+    border:1px solid var(--green-faint);
+    border-radius:6px;
+    padding:20px;
+    background:var(--bg-panel-2);
+    margin-bottom:6px;
+  }
+  .project-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .project-title{
+    font-size:16px;
+    color:var(--green-primary);
+    font-weight:700;
+  }
+  .risk-tag{
+    font-size:10px;
+    color:var(--bg-void);
+    background:var(--amber);
+    padding:3px 8px;
+    border-radius:3px;
+    letter-spacing:0.5px;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .project-desc{
+    font-size:13.5px;
+    color:var(--text-muted);
+    margin-bottom:16px;
+  }
+  .tech-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .tech-tag{
+    font-size:11px;
+    color:var(--green-glow);
+    border:1px solid var(--green-dim);
+    padding:4px 10px;
+    border-radius:20px;
+  }
+  .project-link{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12.5px;
+    color:var(--text-main);
+    text-decoration:none;
+    border-bottom:1px dashed var(--green-dim);
+    padding-bottom:2px;
+  }
+  .project-link:hover{color:var(--green-primary); border-color:var(--green-primary);}
+
+  /* ---------- Log / achievements ---------- */
+  .log-entry{
+    display:grid;
+    grid-template-columns:100px 1fr;
+    gap:16px;
+    padding:16px 0;
+    border-bottom:1px solid var(--green-faint);
+  }
+  .log-entry:last-child{border-bottom:none;}
+  .log-tag{
+    font-size:11px;
+    color:var(--amber);
+    white-space:nowrap;
+  }
+  .log-title{
+    font-size:14px;
+    color:var(--text-main);
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .log-desc{
+    font-size:13px;
+    color:var(--text-muted);
+  }
+
+  /* ---------- Contact ---------- */
+  .contact-grid{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .contact-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:13.5px;
+  }
+  .contact-row .lbl{color:var(--text-muted); width:90px; flex-shrink:0;}
+  .contact-row a{color:var(--green-primary); text-decoration:none;}
+  .contact-row a:hover{text-decoration:underline;}
+
+  footer{
+    text-align:center;
+    color:var(--text-muted);
+    font-size:11.5px;
+    padding:30px 20px 10px;
+    position:relative;
+    z-index:2;
+  }
+  footer .blink-dot{
+    display:inline-block;
+    width:6px;height:6px;
+    background:var(--green-primary);
+    border-radius:50%;
+    margin-right:6px;
+    animation:blink 1.6s infinite;
+  }
+
+  /* reveal on scroll */
+  .reveal{
+    opacity:0;
+    transform:translateY(16px);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .reveal.in{
+    opacity:1;
+    transform:translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+<div class="scanlines"></div>
+
+<nav>
+  <div class="nav-prompt">dhanush<span class="path">@portfolio</span>:~$</div>
+  <div class="nav-links">
+    <a href="#about">about</a>
+    <a href="#skills">skills</a>
+    <a href="#projects">projects</a>
+    <a href="#log">log</a>
+    <a href="#contact">contact</a>
+  </div>
+</nav>
+
+<div class="content">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="boot-lines" id="bootLines"></div>
+
+    <div class="hero-name">DHANUSHKUMAR <span class="highlight">S</span><span class="cursor"></span></div>
+    <div class="hero-tagline">CSE Student // Aspiring Cybersecurity Analyst</div>
+
+    <div class="hero-links">
+      <a href="mailto:dhanushsankar5855@gmail.com">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5z"/></svg>
+        mail
+      </a>
+      <a href="https://github.com/dhanushkumarsec" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M12 .5C5.73.5.98 5.24.98 11.52c0 5.02 3.26 9.28 7.78 10.78.57.1.78-.25.78-.55v-2.14c-3.17.69-3.84-1.36-3.84-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.53-.29-5.19-1.27-5.19-5.63 0-1.24.44-2.26 1.17-3.05-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.16a10.9 10.9 0 0 1 5.72 0c2.18-1.47 3.14-1.16 3.14-1.16.62 1.58.23 2.75.11 3.04.73.79 1.17 1.81 1.17 3.05 0 4.37-2.67 5.34-5.21 5.62.41.36.77 1.07.77 2.16v3.2c0 .3.2.66.79.55A11.53 11.53 0 0 0 23 11.52C23 5.24 18.27.5 12 .5z"/></svg>
+        github
+      </a>
+      <a href="https://www.linkedin.com/in/dhanushkumar-s-5978b8306" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.26 2.37 4.26 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+        linkedin
+      </a>
+      <a href="tel:+916382899305">
+        <svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1.02-.24 11.4 11.4 0 0 0 3.58.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .57 3.58 1 1 0 0 1-.25 1.02l-2.22 2.2z"/></svg>
+        call
+      </a>
+    </div>
+
+    <div class="scan-wrap">
+      <div>security_clearance_scan.sh — profile integrity check</div>
+      <div class="scan-bar-track"><div class="scan-bar-fill"></div></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="term-window reveal">
+    <div class="term-titlebar">
+      <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+      <div class="term-path">dhanush@portfolio: ~/about</div>
+    </div>
+    <div class="term-body">
+      <div class="prompt-line"><span class="sym">$</span> cat about.txt</div>
+      <p class="about-text">
+        Hi, I'm <span class="key">Dhanushkumar S</span>, a fourth-year Computer Science and Engineering
+        student with an <span class="key">8.15 CGPA</span> and a strong passion for
+        <span class="key">Cybersecurity</span>. I have a keen interest in network security, ethical
+        hacking, and Python programming, and I enjoy building practical security-focused applications
+        to strengthen my technical skills. Through hands-on projects and continuous learning, I am
+        developing a solid foundation in cybersecurity with the goal of becoming a skilled
+        <span class="key">Cybersecurity Analyst</span> dedicated to protecting digital systems and
+        infrastructure.
+      </p>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills" class="term-window reveal">
+    <div class="term-titlebar">
+      <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+      <div class="term-path">dhanush@portfolio: ~/skills</div>
+    </div>
+    <div class="term-body">
+      <div class="prompt-line"><span class="sym">$</span> ./skill_scan.sh --list</div>
+      <div class="skills-list">
+        <div class="skill-row">
+          <div class="skill-name">Python</div>
+          <div class="skill-track"><div class="skill-fill" data-pct="88"></div></div>
+          <div class="skill-pct">88%</div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-name">Java</div>
+          <div class="skill-track"><div class="skill-fill" data-pct="72"></div></div>
+          <div class="skill-pct">72%</div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-name">Burp Suite</div>
+          <div class="skill-track"><div class="skill-fill" data-pct="75"></div></div>
+          <div class="skill-pct">75%</div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-name">Linux</div>
+          <div class="skill-track"><div class="skill-fill" data-pct="80"></div></div>
+          <div class="skill-pct">80%</div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-name">Networking</div>
+          <div class="skill-track"><div class="skill-fill" data-pct="78"></div></div>
+          <div class="skill-pct">78%</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects" class="term-window reveal">
+    <div class="term-titlebar">
+      <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+      <div class="term-path">dhanush@portfolio: ~/projects</div>
+    </div>
+    <div class="term-body">
+      <div class="prompt-line"><span class="sym">$</span> ls -la projects/</div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title">Web Vulnerability Scanner</div>
+          <div class="risk-tag">RISK REPORT</div>
+        </div>
+        <div class="project-desc">
+          A Python-based web vulnerability scanner that analyzes website security by checking HTTP
+          response headers, HTTPS configuration, server information, and common security files
+          (robots.txt and security.txt). Generates a full security assessment with a risk score
+          and remediation recommendations.
+        </div>
+        <div class="tech-tags">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">Requests</span>
+          <span class="tech-tag">JSON</span>
+          <span class="tech-tag">HTTP/HTTPS</span>
+        </div>
+        <a class="project-link" href="https://github.com/dhanushkumarsec/web-vulnerability-scanner" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.98 5.24.98 11.52c0 5.02 3.26 9.28 7.78 10.78.57.1.78-.25.78-.55v-2.14c-3.17.69-3.84-1.36-3.84-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.53-.29-5.19-1.27-5.19-5.63 0-1.24.44-2.26 1.17-3.05-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.16a10.9 10.9 0 0 1 5.72 0c2.18-1.47 3.14-1.16 3.14-1.16.62 1.58.23 2.75.11 3.04.73.79 1.17 1.81 1.17 3.05 0 4.37-2.67 5.34-5.21 5.62.41.36.77 1.07.77 2.16v3.2c0 .3.2.66.79.55A11.53 11.53 0 0 0 23 11.52C23 5.24 18.27.5 12 .5z"/></svg>
+          view source →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOG / ACHIEVEMENTS -->
+  <section id="log" class="term-window reveal">
+    <div class="term-titlebar">
+      <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+      <div class="term-path">dhanush@portfolio: ~/var/log</div>
+    </div>
+    <div class="term-body">
+      <div class="prompt-line"><span class="sym">$</span> tail -f activity.log</div>
+
+      <div class="log-entry">
+        <div class="log-tag">[HACKATHON]</div>
+        <div>
+          <div class="log-title">SSN College Hackathon — 3rd Prize</div>
+          <div class="log-desc">Secured 3rd Prize by developing an innovative solution within a competitive environment, demonstrating technical proficiency, teamwork, and problem-solving abilities.</div>
+        </div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-tag">[RESEARCH]</div>
+        <div>
+          <div class="log-title">IJSAT Research Publication</div>
+          <div class="log-desc">Published a research paper in the International Journal of Scientific Advancement and Technology (IJSAT), reflecting a strong interest in research, innovation, and technical writing.</div>
+        </div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-tag">[INTERNSHIP]</div>
+        <div>
+          <div class="log-title">Cybersecurity Internship — KaaShiv Info Tech</div>
+          <div class="log-desc">Completed a Cybersecurity Internship focused on networking, cybersecurity fundamentals, vulnerability assessment, Linux, and Python-based security tools, gaining practical industry exposure.</div>
+        </div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-tag">[CERTIFICATION]</div>
+        <div>
+          <div class="log-title">NPTEL Cloud Computing Certification</div>
+          <div class="log-desc">Strengthened knowledge of cloud infrastructure, virtualization, cloud service models, and distributed computing.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="term-window reveal">
+    <div class="term-titlebar">
+      <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
+      <div class="term-path">dhanush@portfolio: ~/contact</div>
+    </div>
+    <div class="term-body">
+      <div class="prompt-line"><span class="sym">$</span> ./connect.sh --init</div>
+      <div class="contact-grid">
+        <div class="contact-row"><span class="lbl">email</span> <a href="mailto:dhanushsankar5855@gmail.com">dhanushsankar5855@gmail.com</a></div>
+        <div class="contact-row"><span class="lbl">phone</span> <a href="tel:+916382899305">+91 63828 99305</a></div>
+        <div class="contact-row"><span class="lbl">github</span> <a href="https://github.com/dhanushkumarsec" target="_blank" rel="noopener">github.com/dhanushkumarsec</a></div>
+        <div class="contact-row"><span class="lbl">linkedin</span> <a href="https://www.linkedin.com/in/dhanushkumar-s-5978b8306" target="_blank" rel="noopener">in/dhanushkumar-s</a></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <span class="blink-dot"></span>connection secure · © 2026 Dhanushkumar S
+</footer>
+
+<script>
+  // ---------- Matrix rain ----------
+  const canvas = document.getElementById('matrix-canvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, cols, drops;
+
+  function initMatrix(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+    const fontSize = 15;
+    cols = Math.floor(w / fontSize);
+    drops = new Array(cols).fill(1);
+  }
+  initMatrix();
+  window.addEventListener('resize', initMatrix);
+
+  const chars = "アイウエオカキクケコ01SEC{}<>/#$;:PYTHONNMAPBURP".split("");
+
+  function drawMatrix(){
+    ctx.fillStyle = 'rgba(5,8,6,0.06)';
+    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle = '#39ff88';
+    ctx.font = '15px monospace';
+    for(let i=0;i<drops.length;i++){
+      const text = chars[Math.floor(Math.random()*chars.length)];
+      ctx.fillText(text, i*15, drops[i]*15);
+      if(drops[i]*15 > h && Math.random() > 0.975){
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+  }
+  setInterval(drawMatrix, 60);
+
+  // ---------- Boot sequence typing ----------
+  const bootMessages = [
+    "[ OK ] initializing secure shell...",
+    "[ OK ] loading identity: dhanushkumar_s.profile",
+    "[ OK ] mounting /projects /skills /log",
+    "[ OK ] scanning credentials... clearance granted"
+  ];
+  const bootEl = document.getElementById('bootLines');
+  let msgIndex = 0, charIndex = 0;
+
+  function typeBoot(){
+    if(msgIndex >= bootMessages.length) return;
+    const msg = bootMessages[msgIndex];
+    if(charIndex === 0){
+      const div = document.createElement('div');
+      div.className = 'ok';
+      div.id = 'bootline-' + msgIndex;
+      bootEl.appendChild(div);
+    }
+    const div = document.getElementById('bootline-' + msgIndex);
+    if(charIndex <= msg.length){
+      div.textContent = msg.slice(0, charIndex);
+      charIndex++;
+      setTimeout(typeBoot, 12);
+    } else {
+      msgIndex++;
+      charIndex = 0;
+      setTimeout(typeBoot, 120);
+    }
+  }
+  typeBoot();
+
+  // ---------- Skill bars on scroll ----------
+  const skillFills = document.querySelectorAll('.skill-fill');
+  const revealEls = document.querySelectorAll('.reveal');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        entry.target.classList.add('in');
+        if(entry.target.id === 'skills'){
+          skillFills.forEach(el => {
+            el.style.width = el.dataset.pct + '%';
+          });
+        }
+      }
+    });
+  }, { threshold: 0.2 });
+
+  revealEls.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
